@@ -1,14 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { Message } = require("../models/MarketDb");
+const msg = require("../controllers/messageController");
+const { auth } = require("../middleware/auth");
 
-const { sendMessage, getConversation } = require("../controllers/messageController");
-
-// Send a message
-router.post("/", sendMessage);
-
-// Get all messages between two users
-router.get("/:senderId/:receiverId", getConversation);
-
+router.post("/", auth, msg.sendMessage);
+router.get("/:senderId/:receiverId", auth, msg.getConversation);
+router.put("/seen/:messageId", auth, msg.markSeen);
 
 module.exports = router;

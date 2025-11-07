@@ -7,6 +7,9 @@ const router = express.Router();
 // import the login controller
 const loginController = require("../controllers/loginController");
 
+// Define the Register route
+router.post("/register", loginController.register)
+
 // define the login route
 router.post("/login", loginController.login);
 

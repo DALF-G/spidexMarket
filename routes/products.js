@@ -14,7 +14,7 @@ router.get("/", productController.getAllProducts);
 router.get("/:id", productController.getProductById);
 
 // Update product (Only sellers or admins)
-router.put("/:id", auth, authorizeRoles("seller", "admin"), productController.updateProduct);
+router.put("/:id", auth, authorizeRoles("seller", "admin"), productController.uploadProductPhoto, productController.updateProduct);
 
 // Delete product (Only sellers or admins)
 router.delete("/:id", auth, authorizeRoles("seller", "admin"), productController.deleteProduct);

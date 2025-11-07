@@ -19,11 +19,11 @@ router.put("/:id", auth, authorizeRoles("seller","admin"),categoryController.upl
 router.delete("/:id", auth, authorizeRoles("seller","admin"), categoryController.deleteCategory);
 
 // Add subcategory (Only admins or sellers)
-router.post("/:id/subcategory/add",auth,authorizeRoles("seller", "admin"),categoryController.uploadSubCategoryPhoto,categoryController.addSubCategory);
+router.post("/:id/subcategory/add",auth,authorizeRoles("seller", "admin"),categoryController.addSubCategory);
 
 
 // Update subcategory (only admins/sellers)
-router.put("/:id/subcategory/:subId", auth, authorizeRoles("seller","admin"), categoryController.uploadSubCategoryPhoto, categoryController.updateSubCategory);
+router.put("/:id/subcategory/:subId", auth, authorizeRoles("seller","admin"),categoryController.updateSubCategory);
 
 // Delete subcategory
 router.delete("/:id/subcategory/:subId", auth, authorizeRoles("seller","admin"), categoryController.deleteSubCategory);

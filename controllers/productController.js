@@ -3,44 +3,40 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 
-// Configure the image upload folder by use of multer
-const upload = multer({ dest: "uploads/" });
+// storage
+const productDir = "uploads/products";
+if (!fs.existsSync(productDir)) fs.mkdirSync(productDir, { recursive: true });
 
-// Export the upload middleware
-exports.uploadProductPhoto = upload.single("photo");
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, productDir),
+  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname)
+});
+const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
+exports.uploadProductPhoto = upload.array("photos", 5);
 
-// Create a product
+// Create product
 exports.createProduct = async (req, res) => {
   try {
     const {
-      title,
-      description,
-      price,
-      category,
-      sellerId,
-      subCategory,
-      location,
-      condition,
-    } = req.body;
-
-    // 1️⃣ Verify seller exists
+       title, 
+       description, 
+       price, 
+       category, 
+       sellerId, 
+       subCategory, 
+       location, 
+       condition 
+      } = req.body;
+    if (!title || !price || !category || !sellerId || !condition || !location) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
     const seller = await User.findById(sellerId);
-    if (!seller) {
-      return res.status(404).json({ message: "Seller not found" });
-    }
 
-    // 2️⃣ Handle photo upload properly
-    let photos = [];
-    if (req.file) {
-      const ext = path.extname(req.file.originalname);
-      const newFileName = Date.now() + ext;
-      const newPath = path.join("uploads", newFileName);
-      fs.renameSync(req.file.path, newPath);
-      photos.push(newPath.replace(/\\/g, "/")); // add image path to array
-    }
+    if (!seller) return res.status(404).json({ message: "Seller not found" });
 
-    // 3️⃣ Create the product document
-    const newProduct = new Product({
+    const photos = (req.files || []).map(f => f.path.replace(/\\/g, "/"));
+
+    const product = new Product({
       title,
       description,
       price,
@@ -49,124 +45,87 @@ exports.createProduct = async (req, res) => {
       seller: sellerId,
       photo: photos,
       location,
-      condition,
+      condition
     });
 
-    const savedProduct = await newProduct.save();
+    const saved = await product.save();
 
-    // 4️⃣ Return success response
-    res.status(201).json({
-      message: "Product added successfully",
-      product: savedProduct,
-    });
-  } catch (err) {
-    res.status(400).json({
-      message: "Error adding product",
-      error: err.message,
-    });
+    res.status(201).json({ message: "Product added successfully", product: saved });
+  } 
+  catch (err) {
+    res.status(400).json({ message: "Error adding product", error: err.message });
   }
 };
 
-
-//  GET ALL PRODUCTS
- 
+// Get products with filters and pagination
 exports.getAllProducts = async (req, res) => {
   try {
-    // Fetch all products and populate seller info
-    const products = await Product.find().populate("seller", "name phone location email");
+    const { page = 1, limit = 12, category, seller, q, condition, subCategory } = req.query;
 
-    res.status(200).json({
-      message: "Products fetched successfully",
-      count: products.length,
-      products,
-    });
-  } catch (err) {
-    res.status(400).json({
-      message: "Error fetching products",
-      error: err.message,
-    });
+    const skip = (page - 1) * limit;
+
+    const filter = { status: "active" };
+
+    if (category) filter.category = category;
+    if (seller) filter.seller = seller;
+    if (condition) filter.condition = condition;
+    if (subCategory) filter.subCategory = subCategory;
+    if (q) filter.$or = [{ title: new RegExp(q, "i") }, { description: new RegExp(q, "i") }];
+
+    const products = await Product.find(filter).populate("seller", "name phone location").skip(Number(skip)).limit(Number(limit)).sort({ createdAt: -1 });
+    const count = await Product.countDocuments(filter);
+    res.json({ message: "Products fetched", count, page: Number(page), products });
+  } 
+  catch (err) {
+    res.status(400).json({ message: "Error fetching products", error: err.message });
   }
 };
-
-//  GET PRODUCT BY ID
 
 exports.getProductById = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    // Find product by ID and populate the seller
-    const product = await Product.findById(id).populate("seller", "name phone email location");
-
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
-    res.status(200).json({
-      message: "Product fetched successfully",
-      product,
-    });
-  } catch (err) {
-    res.status(400).json({
-      message: "Error fetching product",
-      error: err.message,
-    });
+    const prod = await Product.findById(req.params.id).populate("seller", "name phone location");
+    if (!prod) return res.status(404).json({ message: "Product not found" });
+    prod.views = (prod.views || 0) + 1;
+    prod.save().catch(()=>{});
+    res.json({ product: prod });
+  }
+   catch (err) {
+    res.status(400).json({ message: "Error", error: err.message });
   }
 };
 
-//  UPDATE A PRODUCT
- 
-// UPDATE a product (only seller who owns it or admin)
 exports.updateProduct = async (req, res) => {
-    try {
-        const product = await Product.findById(req.params.id);
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: "Product not found" });
 
-        if (!product) {
-            return res.status(404).json({ message: "Product not found" });
-        }
-
-        // Only the owner or an admin can edit
-        if (product.seller.toString() !== req.user.userId && req.user.role !== "admin") {
-            return res.status(403).json({ message: "Unauthorized to update this product" });
-        }
-
-        const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
-
-        res.json({
-            message: "Product updated successfully",
-            updatedProduct,
-        });
-    } catch (err) {
-        res.status(400).json({
-            message: "Error updating product",
-            error: err.message,
-        });
+    if (product.seller.toString() !== req.user.userId && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Unauthorized" });
     }
+
+    const update = req.body;
+    if (req.files && req.files.length) {
+      update.photo = req.files.map(f => f.path.replace(/\\/g, "/"));
+    }
+    const updated = await Product.findByIdAndUpdate(req.params.id, update, { new: true });
+    res.json({ message: "Product updated", product: updated });
+  }
+   catch (err) {
+    res.status(400).json({ message: "Error updating", error: err.message });
+  }
 };
 
-// DELETE a product (only seller who owns it or admin)
 exports.deleteProduct = async (req, res) => {
-    try {
-        const product = await Product.findById(req.params.id);
-
-        if (!product) {
-            return res.status(404).json({ message: "Product not found" });
-        }
-
-        // Only the owner or admin can delete
-        if (product.seller.toString() !== req.user.userId && req.user.role !== "admin") {
-            return res.status(403).json({ message: "Unauthorized to delete this product" });
-        }
-
-        await product.deleteOne();
-
-        res.json({
-            message: "Product deleted successfully",
-            deletedProduct: product,
-        });
-    } catch (err) {
-        res.status(400).json({
-            message: "Error deleting product",
-            error: err.message,
-        });
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+    if (product.seller.toString() !== req.user.userId && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Unauthorized" });
     }
+    await product.deleteOne();
+    res.json({ message: "Product deleted", deletedProduct: product });
+  } 
+  catch (err) {
+    res.status(400).json({ message: "Error deleting", error: err.message });
+  }
 };
