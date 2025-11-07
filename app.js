@@ -27,6 +27,9 @@ app.use("/api/product", productRoutes);
 const categoryRoutes = require("./routes/category");
 app.use("/api/category", categoryRoutes);
 
+// specify the message Routes
+const messageRoutes = require("./routes/message");
+app.use("/api/message", messageRoutes);
 
 
 
