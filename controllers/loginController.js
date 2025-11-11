@@ -6,27 +6,59 @@ const jwt = require("jsonwebtoken");
 // import jwt secret
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// create register function below
+/// create register function below
 exports.register = async (req, res) => {
   try {
     const { name, email, password, phone, role } = req.body;
 
+    // 1️. Validate required fields
     if (!name || !email || !password || !phone) {
       return res.status(400).json({ message: "Missing required fields" });
     }
-    const exist = await User.findOne({ email });
-    if (exist) return res.status(400).json({ message: "Email Already exists" });
 
+    // 2️. Check if the email already exists
+    const exist = await User.findOne({ email });
+    if (exist) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
+
+    // 3️. Hash password
     const hashed = await bcrypt.hash(password, 10);
-    const user = new User({ name, email, password: hashed, phone, role: role || "buyer" });
+
+    // 4️. Handle seller approval logic
+    // Sellers must be approved by an admin before they can sell
+    const isApprovedSeller = role === "seller" ? false : true;
+
+    // 5️. Create new user
+    const user = new User({
+      name,
+      email,
+      password: hashed,
+      phone,
+      role: role || "buyer",
+      isApprovedSeller, // Added seller approval flag
+    });
+
+    // 6️. Save to DB
     await user.save();
 
-    res.status(201).json({ message: "Registered Successfully", userId: user._id });
-  } 
-  catch (err) {
+    // 7️. Send dynamic message based on role
+    const successMessage =
+      role === "seller"
+        ? "Seller registered successfully. Awaiting admin approval."
+        : "Registered successfully.";
+
+    res.status(201).json({
+      message: successMessage,
+      userId: user._id,
+      role: user.role,
+      isApprovedSeller: user.isApprovedSeller,
+    });
+  } catch (err) {
     res.status(400).json({ message: "Register failed", error: err.message });
   }
 };
+
 
 
 // create a function to handle the login operation

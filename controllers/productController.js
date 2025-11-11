@@ -18,24 +18,39 @@ exports.uploadProductPhoto = upload.array("photos", 5);
 exports.createProduct = async (req, res) => {
   try {
     const {
-       title, 
-       description, 
-       price, 
-       category, 
-       sellerId, 
-       subCategory, 
-       location, 
-       condition 
-      } = req.body;
+      title,
+      description,
+      price,
+      category,
+      sellerId,
+      subCategory,
+      location,
+      condition
+    } = req.body;
+
+    // 1️⃣ Validate required fields
     if (!title || !price || !category || !sellerId || !condition || !location) {
       return res.status(400).json({ message: "Missing required fields" });
     }
+
+    // 2️⃣ Find seller
     const seller = await User.findById(sellerId);
+    if (!seller) {
+      return res.status(404).json({ message: "Seller not found" });
+    }
 
-    if (!seller) return res.status(404).json({ message: "Seller not found" });
+    // 3️⃣ Ensure seller is approved
+    if (seller.role === "seller" && seller.isApprovedSeller === false) {
+      return res.status(403).json({
+        message:
+          "Your seller account is not yet approved. Please wait for admin approval before posting products.",
+      });
+    }
 
-    const photos = (req.files || []).map(f => f.path.replace(/\\/g, "/"));
+    // 4️⃣ Handle uploaded photos
+    const photos = (req.files || []).map((f) => f.path.replace(/\\/g, "/"));
 
+    // 5️⃣ Create new product
     const product = new Product({
       title,
       description,
@@ -45,11 +60,13 @@ exports.createProduct = async (req, res) => {
       seller: sellerId,
       photo: photos,
       location,
-      condition
+      condition,
     });
 
+    // 6️⃣ Save product to database
     const saved = await product.save();
 
+    // 7️⃣ Respond to client
     res.status(201).json({ message: "Product added successfully", product: saved });
   } 
   catch (err) {

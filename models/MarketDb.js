@@ -15,6 +15,7 @@ const userSchema = new Schema({
     type: String, 
     enum: ["buyer", "seller", "admin"], 
     required:true },
+  isApprovedSeller: { type: Boolean, default: false },
   favourites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
   lastLogin: { type: Date },
   rating: {

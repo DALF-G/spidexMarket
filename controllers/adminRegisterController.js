@@ -40,3 +40,50 @@ exports.reqisterAdmin = async (req, res)=>{
 
     res.status(201).json({message : "Admin account Created Successfully",savedUser})
 };
+
+// Approve a seller
+exports.approveSeller = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const seller = await User.findById(id);
+    if (!seller) {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+
+    if (seller.role !== "seller") {
+      return res.status(400).json({ message: "User is not a seller" });
+    }
+
+    seller.isApprovedSeller = true;
+    await seller.save();
+
+    res.status(200).json({
+      message: "Seller approved successfully",
+      seller: {
+        id: seller._id,
+        name: seller.name,
+        email: seller.email,
+        phone: seller.phone,
+        role: seller.role,
+        isApprovedSeller: seller.isApprovedSeller,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({ message: "Error approving seller", error: err.message });
+  }
+};
+
+// Get all pending sellers
+exports.getPendingSellers = async (req, res) => {
+  try {
+    const pending = await User.find({ role: "seller", isApprovedSeller: false });
+    res.status(200).json({
+      message: "Pending sellers fetched successfully",
+      count: pending.length,
+      sellers: pending,
+    });
+  } catch (err) {
+    res.status(400).json({ message: "Error fetching pending sellers", error: err.message });
+  }
+};
