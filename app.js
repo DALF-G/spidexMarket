@@ -53,6 +53,21 @@ app.use("/api/category", categoryRoutes);
 const messageRoutes = require("./routes/message");
 app.use("/api/message", messageRoutes);
 
+// define the route to get admin dashboard starts
+const adminDashboardRoutes = require("./routes/adminDashboard")
+app.use("/api/adminstats",adminDashboardRoutes) 
+
+// define the route to get admin dashboard starts
+const sellerDashboardRoutes = require("./routes/sellerDashboard")
+app.use("/api/sellerstats",sellerDashboardRoutes) 
+
+// define the route to get admin dashboard starts
+const buyerDashboardRoutes = require("./routes/buyerDashboard")
+app.use("/api/buyerstats",buyerDashboardRoutes) 
+
+
+
+
 // Global error handler (simple)
 app.use((err, req, res, next) => {
   console.error(err.stack);
