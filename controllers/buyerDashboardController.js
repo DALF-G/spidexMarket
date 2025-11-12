@@ -3,14 +3,7 @@ const { User, Message, Review, Product } = require("../models/MarketDb");
 // GET buyer dashboard stats
 exports.getBuyerDashboardStats = async (req, res) => {
   try {
-    const buyerId = req.params.buyerId;
-
-    // Verify buyer exists
-    const buyer = await User.findById(buyerId);
-    if (!buyer || buyer.role !== "buyer") {
-      return res.status(404).json({ message: "Buyer not found or not authorized" });
-    }
-
+    
     // Run queries in parallel
     const [
       totalMessages,
