@@ -1,4 +1,4 @@
-const { Category } = require("../models/MarketDb");
+const { Category, SubCategory } = require("../models/MarketDb");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
