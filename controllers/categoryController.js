@@ -85,20 +85,28 @@ exports.deleteCategory = async (req, res) => {
 // add
 exports.addSubCategory = async (req, res) => {
   try {
-    const {name} = req.body?.name || req.body?.get?.("name");
-    if (!name) return res.status(400).json({ message: "Subcategory name required" });
+    const {name} = req.body;
+    if (!name) {
+      return res.status(400).json({ message: "Subcategory name required" })
+    };
+
     const existing = await SubCategory.findOne({ name });
-    if (existing) return res.status(400).json({ message: "Category exists" });
+    if (existing) {
+      return res.status(400).json({ message: "SubCategory already exists" })
+    };
 
     const { id } = req.params;
     const category = await Category.findById(id);
-    if (!category) return res.status(404).json({ message: "Category not found" });
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
 
     category.subcategories.push(name);
     await category.save();
 
-    res.status(201).json({ message: "Subcategory added", category });
-  } catch (err) {
+   return res.status(201).json({ message: "Subcategory added", category });
+  } 
+  catch (err) {
     res.status(400).json({ message: "Error", error: err.message });
   }
 };
