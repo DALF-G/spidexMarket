@@ -90,15 +90,15 @@ exports.addSubCategory = async (req, res) => {
       return res.status(400).json({ message: "Subcategory name required" })
     };
 
-    const existing = await SubCategory.findOne({ name });
-    if (existing) {
-      return res.status(400).json({ message: "SubCategory already exists" })
-    };
-
     const { id } = req.params;
     const category = await Category.findById(id);
     if (!category) {
       return res.status(404).json({ message: "Category not found" });
+    }
+
+    // Check if subcategory already exists
+    if (category.subcategories.includes(name)) {
+      return res.status(400).json({ message: "Subcategory already exists" });
     }
 
     category.subcategories.push(name);
