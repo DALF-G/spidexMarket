@@ -85,47 +85,96 @@ exports.deleteCategory = async (req, res) => {
 // add
 exports.addSubCategory = async (req, res) => {
   try {
-    const { name } = req.body;
-    const category = await Category.findById(req.params.id);
+    const {name} = req.body?.name || req.body?.get?.("name");
+    if (!name) return res.status(400).json({ message: "Subcategory name required" });
+    const existing = await SubCategory.findOne({ name });
+    if (existing) return res.status(400).json({ message: "Category exists" });
+
+    const { id } = req.params;
+    const category = await Category.findById(id);
     if (!category) return res.status(404).json({ message: "Category not found" });
-    if (!name) return res.status(400).json({ message: "name required" });
+
     category.subcategories.push(name);
     await category.save();
+
     res.status(201).json({ message: "Subcategory added", category });
-  }
-   catch (err) {
+  } catch (err) {
     res.status(400).json({ message: "Error", error: err.message });
   }
 };
 
+
 // update (by index)
 exports.updateSubCategory = async (req, res) => {
   try {
-    const { name } = req.body;
     const { id, subId } = req.params;
+    const name = req.body?.name;
+
+    if (!id || subId === undefined) {
+      return res.status(400).json({ message: "Category ID and subcategory index are required" });
+    }
+    if (!name) {
+      return res.status(400).json({ message: "Subcategory name is required" });
+    }
+
     const category = await Category.findById(id);
-    if (!category) return res.status(404).json({ message: "Category not found" });
-    if (!category.subcategories[subId]) return res.status(404).json({ message: "Subcategory not found" });
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    // Ensure index is valid
+    if (!category.subcategories[subId]) {
+      return res.status(404).json({ message: "Subcategory not found" });
+    }
+
+    // Update the subcategory name
     category.subcategories[subId] = name;
     await category.save();
-    res.json({ message: "Sub updated", category });
-  } 
-  catch (err) {
-    res.status(400).json({ message: "Error", error: err.message });
+
+    res.status(200).json({
+      message: "Subcategory updated successfully",
+      category,
+    });
+  } catch (err) {
+    res.status(400).json({
+      message: "Error updating subcategory",
+      error: err.message,
+    });
   }
 };
+
 
 // delete (by index)
 exports.deleteSubCategory = async (req, res) => {
   try {
     const { id, subId } = req.params;
+
+    if (!id || subId === undefined) {
+      return res.status(400).json({ message: "Category ID and subcategory index are required" });
+    }
+
     const category = await Category.findById(id);
-    if (!category) return res.status(404).json({ message: "Category not found" });
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    // Ensure index exists before deletion
+    if (!category.subcategories[subId]) {
+      return res.status(404).json({ message: "Subcategory not found" });
+    }
+
+    // Remove the subcategory by index
     category.subcategories.splice(subId, 1);
     await category.save();
-    res.json({ message: "Sub deleted", category });
-  } 
-  catch (err) {
-    res.status(400).json({ message: "Error", error: err.message });
+
+    res.status(200).json({
+      message: "Subcategory deleted successfully",
+      category,
+    });
+  } catch (err) {
+    res.status(400).json({
+      message: "Error deleting subcategory",
+      error: err.message,
+    });
   }
 };
