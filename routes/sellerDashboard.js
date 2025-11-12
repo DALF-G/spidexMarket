@@ -10,7 +10,7 @@ const {auth,authorizeRoles} = require("../middleware/auth")
 const sellerDashboardController = require("../controllers/sellerDashboardController")
 
 // get all the admin statistics
-router.get("/",auth,authorizeRoles("seller"),sellerDashboardController.getSellerDashboardStats)
+router.get("/",auth,sellerDashboardController.getSellerDashboardStats)
 
 
 // export the router

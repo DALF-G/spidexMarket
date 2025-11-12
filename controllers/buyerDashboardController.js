@@ -4,8 +4,9 @@ const { User, Message, Review, Product } = require("../models/MarketDb");
 exports.getBuyerDashboardStats = async (req, res) => {
   try {
     // Get the logged-in buyer from auth middleware
-    const buyer = req.user;
-    const buyerId = buyer?._id;
+    const buyer = req.user.userId;
+    const buyerId = req.user.userId;
+    console.log("The buyer id is", req.user)
 
     if (!buyerId) {
       return res.status(400).json({ message: "Buyer not found or not logged in" });
