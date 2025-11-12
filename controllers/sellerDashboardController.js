@@ -3,6 +3,10 @@ const { User, Product, Premium, Review, Message } = require("../models/MarketDb"
 // GET seller dashboard stats
 exports.getSellerDashboardStats = async (req, res) => {
   try {
+    // Get the logged-in seller from auth middleware
+    const seller = req.user;
+    const sellerId = seller._id;
+
     // Run all queries in parallel for performance
     const [
       totalProducts,
