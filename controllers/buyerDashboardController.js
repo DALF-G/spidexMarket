@@ -5,7 +5,11 @@ exports.getBuyerDashboardStats = async (req, res) => {
   try {
     // Get the logged-in buyer from auth middleware
     const buyer = req.user;
-    const buyerId = buyer._id;
+    const buyerId = buyer?._id;
+
+    if (!buyerId) {
+      return res.status(400).json({ message: "Buyer not found or not logged in" });
+    }
 
     // Run queries in parallel
     const [
@@ -15,13 +19,13 @@ exports.getBuyerDashboardStats = async (req, res) => {
       lastLogin,
     ] = await Promise.all([
       Message.countDocuments({ $or: [{ sender: buyerId }, { receiver: buyerId }] }),
-      buyer.favourites.length,
+      buyer?.favourites?.length || 0,
       Review.countDocuments({ reviewer: buyerId }),
-      buyer.lastLogin,
+      buyer?.lastLogin,
     ]);
 
     // Get recent favourites (latest 5)
-    const recentFavourites = await Product.find({ _id: { $in: buyer.favourites } })
+    const recentFavourites = await Product.find({ _id: { $in: buyer?.favourites || [] } })
       .sort({ createdAt: -1 })
       .limit(5)
       .select("title price photo location");

@@ -7,6 +7,10 @@ exports.getSellerDashboardStats = async (req, res) => {
     const seller = req.user;
     const sellerId = seller._id;
 
+    if (!sellerId) {
+      return res.status(400).json({ message: "Seller not found or not logged in" });
+    }
+
     // Run all queries in parallel for performance
     const [
       totalProducts,
