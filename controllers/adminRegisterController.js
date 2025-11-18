@@ -87,3 +87,13 @@ exports.getPendingSellers = async (req, res) => {
     res.status(400).json({ message: "Error fetching pending sellers", error: err.message });
   }
 };
+
+// Reject seller (delete seller)
+exports.rejectSeller = async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: "Seller rejected and removed" });
+  } catch (err) {
+    res.status(400).json({ message: "Error", error: err.message });
+  }
+};
