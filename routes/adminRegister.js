@@ -12,6 +12,9 @@ const { auth, authorizeRoles } = require("../middleware/auth");
 // define the endpoint to access for you to register an admin
 router.post("/register", registerController.reqisterAdmin)
 
+// route to get all users
+router.get("/users", auth, authorizeRoles("admin"), adminController.getAllUsers)
+
 // Define the endpoint to access admin seller approval
 router.put("/approveseller/:id", auth, authorizeRoles("admin"),registerController.approveSeller)
 

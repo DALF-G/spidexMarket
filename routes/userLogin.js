@@ -16,6 +16,9 @@ router.post("/register", loginController.register)
 // define the login route
 router.post("/login", loginController.login);
 
+// route to get all users
+router.get("/users", auth, authorizeRoles("admin"), adminController.getAllUsers)
+
 // Admin approves a pending seller
 router.put("/approveseller/:id", auth, authorizeRoles("admin"), adminController.approveSeller);
 

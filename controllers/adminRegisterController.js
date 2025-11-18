@@ -41,6 +41,16 @@ exports.reqisterAdmin = async (req, res)=>{
     res.status(201).json({message : "Admin account Created Successfully",savedUser})
 };
 
+// Get all users
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().sort({ createdAt: -1 });
+    res.json({ message: "Users fetched successfully", users });
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching users", error: err.message });
+  }
+};
+
 // Approve a seller
 exports.approveSeller = async (req, res) => {
   try {
