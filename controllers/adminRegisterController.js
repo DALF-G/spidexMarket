@@ -97,3 +97,44 @@ exports.rejectSeller = async (req, res) => {
     res.status(400).json({ message: "Error", error: err.message });
   }
 };
+
+// Toggle Active / Inactive user
+exports.toggleActive = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { isActive },
+      { new: true }
+    );
+
+    if (!updatedUser) 
+      return res.status(404).json({ message: "User not found" });
+
+    res.json({
+      message: `User has been ${isActive ? "activated" : "deactivated"}`,
+      user: updatedUser,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Error updating status", error: err.message });
+  }
+};
+
+// Delete user
+exports.deleteUser = async (req, res) => {
+  try {
+    const deleted = await User.findByIdAndDelete(req.params.id);
+
+    if (!deleted) 
+      return res.status(404).json({ message: "User not found" });
+
+    res.json({
+      message: "User deleted successfully",
+      user: deleted,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Error deleting user", error: err.message });
+  }
+};

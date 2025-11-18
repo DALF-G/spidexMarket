@@ -17,10 +17,10 @@ router.post("/register", loginController.register)
 router.post("/login", loginController.login);
 
 // Admin approves a pending seller
-router.put("/approve-seller/:id", auth, authorizeRoles("admin"), adminController.approveSeller);
+router.put("/approveseller/:id", auth, authorizeRoles("admin"), adminController.approveSeller);
 
 // Get all pending sellers
-router.get("/pending-sellers", auth, authorizeRoles("admin"), adminController.getPendingSellers);
+router.get("/pendingsellers", auth, authorizeRoles("admin"), adminController.getPendingSellers);
 
 
 // export the route

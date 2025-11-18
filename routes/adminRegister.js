@@ -21,6 +21,12 @@ router.get("/sellers", auth, authorizeRoles("admin"), registerController.getPend
 // Route to reject the seller
 router.put("/rejectseller/:id", auth, authorizeRoles("admin"), registerController.rejectSeller)
 
+// route for toogle active users
+router.put("/toggleactive/:id", auth,authorizeRoles("admin"),registerController.toggleActive)
+
+// route to delete user
+router.delete("/deleteuser/:id",auth,authorizeRoles("admin"),registerController.deleteUser)
+
 
 // export the router
 module.exports = router;
