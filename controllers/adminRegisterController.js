@@ -148,3 +148,32 @@ exports.deleteUser = async (req, res) => {
     res.status(500).json({ message: "Error deleting user", error: err.message });
   }
 };
+
+// Get all the buyers
+exports.getAllBuyers = async (req, res) => {
+  try {
+    const buyers = await User.find({ role: "buyer" }).sort({ createdAt: -1 });
+
+    res.json({
+      message: "Buyers fetched successfully",
+      buyers,
+    });
+  }
+   catch (err) {
+    res.status(500).json({ message: "Error fetching buyers", error: err.message });
+  }
+};
+
+// Get all the messages
+exports.getAllMessages = async (req, res) => {
+  try {
+    const msgs = await Message.find()
+      .populate("sender", "name email")
+      .populate("receiver", "name email")
+      .sort({ createdAt: -1 });
+
+    res.json({ message: "Messages fetched", msgs });
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching messages", error: err.message });
+  }
+};

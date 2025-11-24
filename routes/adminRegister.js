@@ -15,20 +15,27 @@ router.post("/register", registerController.reqisterAdmin)
 // route to get all users
 router.get("/users", auth, authorizeRoles("admin"), registerController.getAllUsers)
 
-// Define the endpoint to access admin seller approval
-router.put("/approveseller/:id", auth, authorizeRoles("admin"),registerController.approveSeller)
-
-// Define the route to get all pending sellers
-router.get("/sellers", auth, authorizeRoles("admin"), registerController.getPendingSellers)
-
-// Route to reject the seller
-router.put("/rejectseller/:id", auth, authorizeRoles("admin"), registerController.rejectSeller)
-
 // route for toogle active users
 router.put("/toggleactive/:id", auth,authorizeRoles("admin"),registerController.toggleActive)
 
 // route to delete user
 router.delete("/deleteuser/:id",auth,authorizeRoles("admin"),registerController.deleteUser)
+
+// Define the route to get all pending sellers
+router.get("/sellers", auth, authorizeRoles("admin"), registerController.getPendingSellers)
+
+// Define the endpoint to access admin seller approval
+router.put("/approveseller/:id", auth, authorizeRoles("admin"),registerController.approveSeller)
+
+// Route to reject the seller
+router.put("/rejectseller/:id", auth, authorizeRoles("admin"), registerController.rejectSeller)
+
+// BUYERS
+router.get("/buyers", auth, authorizeRoles("admin"), registerController.getAllBuyers);
+
+// messages
+router.get("/messages", auth, authorizeRoles("admin"), registerController.getAllMessages);
+
 
 
 // export the router
