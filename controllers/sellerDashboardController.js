@@ -39,12 +39,14 @@ exports.getSellerDashboardStats = async (req, res) => {
 
     // Get 5 most recent products
     const recentProducts = await Product.find({ seller: sellerId })
+      .populate("category", "name")
       .sort({ createdAt: -1 })
       .limit(5)
       .select("title price status views createdAt");
 
     // Get 5 most recent premium ads
     const recentPremiums = await Premium.find({ user: sellerId })
+      .populate("category", "name")
       .sort({ createdAt: -1 })
       .limit(5)
       .populate("product", "title price");
@@ -77,3 +79,19 @@ exports.getSellerDashboardStats = async (req, res) => {
     });
   }
 };
+
+exports.getSellerProducts = async (req, res) => {
+  try {
+    const sellerId = req.user.id; // token decoded ID
+
+    const products = await Product.find({ user: sellerId })
+      .populate("category", "name") // optional
+      .sort({ createdAt: -1 });
+
+    return res.json({ products });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Error loading seller products" });
+  }
+};
+

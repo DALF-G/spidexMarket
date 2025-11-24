@@ -12,6 +12,9 @@ const sellerDashboardController = require("../controllers/sellerDashboardControl
 // get all the admin statistics
 router.get("/",auth,sellerDashboardController.getSellerDashboardStats)
 
+// get all the products
+router.get("/products",auth,sellerDashboardController.getSellerProducts)
+
 
 // export the router
 module.exports = router;
