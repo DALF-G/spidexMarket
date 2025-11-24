@@ -1,4 +1,4 @@
-const {User} = require("../models/MarketDb");
+const {User, Message} = require("../models/MarketDb");
 const bycryptjs = require("bcryptjs");
 const bcrypt = require("bcrypt");
 
@@ -177,3 +177,4 @@ exports.getAllMessages = async (req, res) => {
     res.status(500).json({ message: "Error fetching messages", error: err.message });
   }
 };
+

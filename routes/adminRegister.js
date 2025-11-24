@@ -34,7 +34,7 @@ router.put("/rejectseller/:id", auth, authorizeRoles("admin"), registerControlle
 router.get("/buyers", auth, authorizeRoles("admin"), registerController.getAllBuyers);
 
 // messages
-router.get("/messages", auth, authorizeRoles("admin"), registerController.getAllMessages);
+router.get("/message", auth, authorizeRoles("admin"), registerController.getAllMessages);
 
 
 
