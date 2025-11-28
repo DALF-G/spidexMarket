@@ -32,7 +32,7 @@ const productSchema = new Schema({
   category: { type: String, required: true },
   subCategory: { type: String },
   seller: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  photo: [{ type: String }],
+  photos: [{ type: String }],
   condition: { type: String, enum: ["new", "used"], required: true },
   location: { type: String, required: true},
   isFeatured: { type: Boolean, default: false },

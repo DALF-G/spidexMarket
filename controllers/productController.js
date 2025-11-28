@@ -44,7 +44,7 @@ exports.createProduct = async (req, res) => {
       category,
       subCategory,
       seller: sellerId,
-      photos,              // <= CLOUDINARY URLS HERE
+      photos: photos,              // <= CLOUDINARY URLS HERE
       location,
       condition,
     });
