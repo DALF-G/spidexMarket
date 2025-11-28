@@ -4,8 +4,8 @@ const msg = require("../controllers/messageController");
 const { auth } = require("../middleware/auth");
 
 router.post("/send", auth, msg.sendMessage);
-router.get("/:senderId/:receiverId", auth, msg.getConversation);
-router.put("/seen/:messageId", auth, msg.markSeen);
+router.get("/my", auth, msg.getMyChats);
+router.put("/seen", auth, msg.markSeen);
 
 // messages
 router.get("/", auth, msg.getAllMessages);

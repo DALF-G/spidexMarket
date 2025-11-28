@@ -16,21 +16,24 @@ exports.sendMessage = async (req, res) => {
   }
 };
 
-exports.getConversation = async (req, res) => {
+exports.getMyChats = async (req, res) => {
   try {
-    const { senderId, receiverId } = req.params;
-    const messages = await Message.find({
+    const userId = req.user.id;  // from auth middleware
+
+    const chats = await Message.find({
       $or: [
-        { sender: senderId, receiver: receiverId },
-        { sender: receiverId, receiver: senderId }
+        { sender: userId },
+        { receiver: userId }
       ]
     })
-    .sort({ createdAt: 1 }).populate("sender", "name").
-    populate("receiver", "name").populate("product", "title price");
-    res.json(messages);
-  }
-   catch (err) {
-    res.status(400).json({ message: "Error", error: err.message });
+      .populate("sender", "name email phone")
+      .populate("receiver", "name email phone")
+      .sort({ createdAt: -1 });
+
+    res.json({ chats });
+  } catch (error) {
+    console.error("getMyChats error", error);
+    res.status(500).json({ error: "Failed to fetch chats" });
   }
 };
 
