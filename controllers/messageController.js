@@ -3,18 +3,26 @@ const { Message } = require("../models/MarketDb");
 // send
 exports.sendMessage = async (req, res) => {
   try {
-    const { sender, receiver, product, content } = req.body;
-    if (!sender || !receiver || !content) return res.status(400).json
-    ({ message: "required fields" });
+    const { sellerId, productId, message } = req.body;
 
-    const message = new Message({ sender, receiver, product, content });
-    const saved = await message.save();
-    res.status(201).json({ message: "Message sent", data: saved });
-  } 
-  catch (err) {
-    res.status(400).json({ message: "Error", error: err.message });
+    if (!message || !sellerId)
+      return res.status(400).json({ error: "Missing fields" });
+
+    const newMsg = await Message.create({
+      sender: req.user.id,
+      receiver: sellerId,
+      product: productId,
+      message,
+    });
+
+    res.json({ success: true, msg: newMsg });
+  }
+   catch (error) {
+    console.error("sendMessage error", error);
+    res.status(500).json({ error: "Failed to send message" });
   }
 };
+
 
 exports.getMyChats = async (req, res) => {
   try {

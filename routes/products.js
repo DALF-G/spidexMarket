@@ -1,11 +1,18 @@
+// routes/products.js
 const express = require("express");
 const router = express.Router();
 const { auth, authorizeRoles } = require("../middleware/auth");
 const productController = require("../controllers/productController");
+const upload = require("../middleware/upload");
 
-
-// Create/add product (Only sellers or admins)
-router.post("/add", auth, authorizeRoles("seller", "admin"),productController.uploadProductPhoto, productController.createProduct);
+// Upload up to 5 images: field name must be "photos"
+router.post(
+  "/add",
+  auth,
+  authorizeRoles("seller", "admin"),
+  upload.array("photos", 5),
+  productController.createProduct
+);
 
 // Fetch all products
 router.get("/", productController.getAllProducts);
@@ -14,7 +21,15 @@ router.get("/", productController.getAllProducts);
 router.get("/:id", productController.getProductById);
 
 // Update product (Only sellers or admins)
-router.put("/:id", auth, authorizeRoles("seller", "admin"), productController.uploadProductPhoto, productController.updateProduct);
+// router.put("/:id", auth, authorizeRoles("seller", "admin"), productController.uploadProductPhoto, productController.updateProduct);
+router.put(
+    "/:id",
+    auth,
+    authorizeRoles("seller", "admin"),
+    upload.array("photos", 5),   // Cloudinary upload
+    productController.updateProduct
+  );
+
 
 // Delete product (Only sellers or admins)
 router.delete("/:id", auth, authorizeRoles("seller", "admin"), productController.deleteProduct);

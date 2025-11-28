@@ -1,20 +1,6 @@
+// controllers/productController.js
 const { Product, User } = require("../models/MarketDb");
-const multer = require("multer");
-const fs = require("fs");
-const path = require("path");
 
-// storage
-const productDir = "uploads/products";
-if (!fs.existsSync(productDir)) fs.mkdirSync(productDir, { recursive: true });
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, productDir),
-  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname)
-});
-const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
-exports.uploadProductPhoto = upload.array("photos", 5);
-
-// Create product
 exports.createProduct = async (req, res) => {
   try {
     const {
@@ -28,29 +14,29 @@ exports.createProduct = async (req, res) => {
       condition
     } = req.body;
 
-    // 1️⃣ Validate required fields
+    // Validate required fields
     if (!title || !price || !category || !sellerId || !condition || !location) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // 2️⃣ Find seller
+    // Find seller
     const seller = await User.findById(sellerId);
     if (!seller) {
       return res.status(404).json({ message: "Seller not found" });
     }
 
-    // 3️⃣ Ensure seller is approved
+    // Ensure seller approved
     if (seller.role === "seller" && seller.isApprovedSeller === false) {
       return res.status(403).json({
         message:
-          "Your seller account is not yet approved. Please wait for admin approval before posting products.",
+          "Your seller account is not yet approved. Please wait for admin approval.",
       });
     }
 
-    // 4️⃣ Handle uploaded photos
-    const photos = (req.files || []).map((f) => f.path.replace(/\\/g, "/"));
+    // Get cloudinary image URLs
+    const photos = (req.files || []).map(file => file.path);
 
-    // 5️⃣ Create new product
+    // Create product
     const product = new Product({
       title,
       description,
@@ -58,18 +44,18 @@ exports.createProduct = async (req, res) => {
       category,
       subCategory,
       seller: sellerId,
-      photo: photos,
+      photos,              // <= CLOUDINARY URLS HERE
       location,
       condition,
     });
 
-    // 6️⃣ Save product to database
     const saved = await product.save();
 
-    // 7️⃣ Respond to client
-    res.status(201).json({ message: "Product added successfully", product: saved });
-  } 
-  catch (err) {
+    res.status(201).json({
+      message: "Product added successfully",
+      product: saved
+    });
+  } catch (err) {
     res.status(400).json({ message: "Error adding product", error: err.message });
   }
 };
@@ -121,8 +107,8 @@ exports.updateProduct = async (req, res) => {
     }
 
     const update = req.body;
-    if (req.files && req.files.length) {
-      update.photo = req.files.map(f => f.path.replace(/\\/g, "/"));
+    if (req.files && req.files.length > 0) {
+      update.photos = req.files.map(file => file.path);
     }
     const updated = await Product.findByIdAndUpdate(req.params.id, update, { new: true });
     res.json({ message: "Product updated", product: updated });
