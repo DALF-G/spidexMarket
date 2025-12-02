@@ -2,31 +2,28 @@ const express = require("express");
 const router = express.Router();
 const { auth, authorizeRoles } = require("../middleware/auth");
 const categoryController = require("../controllers/categoryController");
+const upload = require("../middleware/upload"); // <-- your upload.js
 
-// Create/add category (Only admins and seller)
-router.post("/add", auth, authorizeRoles("seller","admin"),categoryController.uploadCategoryPhoto,categoryController.createCategory);
+router.post(
+  "/add",
+  auth,
+  authorizeRoles("seller", "admin"),
+  upload.single("photo"), // field must be "photo"
+  categoryController.createCategory
+);
 
-// Fetch all categories
 router.get("/", categoryController.getAllCategories);
-
-// Get category by ID
 router.get("/:id", categoryController.getCategoryById);
 
-// Update category (Only admins and Seller)
-router.put("/:id", auth, authorizeRoles("seller","admin"),categoryController.uploadCategoryPhoto, categoryController.updateCategory);
+router.put("/:id",auth,authorizeRoles("seller", "admin"), upload.single("photo"),categoryController.updateCategory
+);
 
-// Delete category (Only admins and Seller)
-router.delete("/:id", auth, authorizeRoles("seller","admin"), categoryController.deleteCategory);
+router.delete("/:id", auth, authorizeRoles("seller", "admin"), categoryController.deleteCategory);
 
-// Add subcategory (Only admins or sellers)
-router.post("/:id/subcategory/add",auth,authorizeRoles("seller", "admin"),categoryController.addSubCategory);
+router.post("/:id/subcategory/add", auth, authorizeRoles("seller", "admin"), categoryController.addSubCategory);
 
+router.put("/:id/subcategory/:subId", auth, authorizeRoles("seller", "admin"), categoryController.updateSubCategory);
 
-// Update subcategory (only admins/sellers)
-router.put("/:id/subcategory/:subId", auth, authorizeRoles("seller","admin"),categoryController.updateSubCategory);
-
-// Delete subcategory
-router.delete("/:id/subcategory/:subId", auth, authorizeRoles("seller","admin"), categoryController.deleteSubCategory);
-
+router.delete("/:id/subcategory/:subId", auth, authorizeRoles("seller", "admin"), categoryController.deleteSubCategory);
 
 module.exports = router;
