@@ -8,14 +8,22 @@ exports.createProduct = async (req, res) => {
       description,
       price,
       category,
-      sellerId,
+      sellerId: bodySellerId, // sellerId from admin (optional)
       subCategory,
       location,
-      condition
+      condition,
+      isFeatured
     } = req.body;
 
+    // Determine seller: use bodySellerId if admin, otherwise logged-in user
+    const sellerId = bodySellerId || req.user?._id;
+
+    if (!sellerId) {
+      return res.status(400).json({ message: "Seller ID is required" });
+    }
+
     // Validate required fields
-    if (!title || !price || !category || !sellerId || !condition || !location) {
+    if (!title || !price || !category || !condition || !location) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -25,15 +33,15 @@ exports.createProduct = async (req, res) => {
       return res.status(404).json({ message: "Seller not found" });
     }
 
-    // Ensure seller approved
+    // Ensure seller is approved
     if (seller.role === "seller" && seller.isApprovedSeller === false) {
       return res.status(403).json({
         message:
-          "Your seller account is not yet approved. Please wait for admin approval.",
+          "This seller account is not yet approved. Please wait for admin approval.",
       });
     }
 
-    // Get cloudinary image URLs
+    // Upload photos to Cloudinary (or just use paths if already uploaded)
     const photos = (req.files || []).map(file => file.path);
 
     // Create product
@@ -44,9 +52,10 @@ exports.createProduct = async (req, res) => {
       category,
       subCategory,
       seller: sellerId,
-      photos: photos,              // <= CLOUDINARY URLS HERE
+      photos,
       location,
       condition,
+      isFeatured: isFeatured || false
     });
 
     const saved = await product.save();
@@ -56,6 +65,7 @@ exports.createProduct = async (req, res) => {
       product: saved
     });
   } catch (err) {
+    console.error(err);
     res.status(400).json({ message: "Error adding product", error: err.message });
   }
 };
