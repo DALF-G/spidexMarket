@@ -132,3 +132,19 @@ exports.deleteProduct = async (req, res) => {
     res.status(400).json({ message: "Error deleting", error: err.message });
   }
 };
+
+exports.getMyProducts = async (req, res) => {
+  try {
+    const sellerId = req.user.userId;
+
+    const products = await Product.find({ seller: sellerId }).sort({ createdAt: -1 });
+
+    res.json({
+      message: "Seller products fetched",
+      products
+    });
+  } 
+  catch (err) {
+    res.status(400).json({ message: "Error fetching seller products", error: err.message });
+  }
+};

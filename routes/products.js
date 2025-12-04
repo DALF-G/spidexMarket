@@ -14,6 +14,12 @@ router.post(
   productController.createProduct
 );
 
+router.get(
+  "/my-products",
+  auth,
+  authorizeRoles("seller", "admin"),
+  productController.getMyProducts);
+
 // Fetch all products
 router.get("/", productController.getAllProducts);
 
@@ -32,6 +38,8 @@ router.put(
 
 
 // Delete product (Only sellers or admins)
-router.delete("/:id", auth, authorizeRoles("seller", "admin"), productController.deleteProduct);
+router.delete("/:id", auth, authorizeRoles("seller", "admin"), 
+productController.deleteProduct);
+
 
 module.exports = router;
