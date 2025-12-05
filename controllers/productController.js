@@ -8,43 +8,35 @@ exports.createProduct = async (req, res) => {
       description,
       price,
       category,
-      sellerId: bodySellerId, // sellerId from admin (optional)
+      sellerId: bodySellerId,
       subCategory,
       location,
       condition,
       isFeatured
     } = req.body;
 
-    // Determine seller: use bodySellerId if admin, otherwise logged-in user
-    const sellerId = bodySellerId || req.user?._id;
+    // FIXED HERE
+    const sellerId = bodySellerId || req.user?.userId;
 
     if (!sellerId) {
       return res.status(400).json({ message: "Seller ID is required" });
     }
 
-    // Validate required fields
     if (!title || !price || !category || !condition || !location) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Find seller
     const seller = await User.findById(sellerId);
-    if (!seller) {
-      return res.status(404).json({ message: "Seller not found" });
-    }
+    if (!seller) return res.status(404).json({ message: "Seller not found" });
 
-    // Ensure seller is approved
     if (seller.role === "seller" && seller.isApprovedSeller === false) {
       return res.status(403).json({
-        message:
-          "This seller account is not yet approved. Please wait for admin approval.",
+        message: "This seller account is not yet approved. Please wait for admin approval.",
       });
     }
 
-    // Upload photos to Cloudinary (or just use paths if already uploaded)
     const photos = (req.files || []).map(file => file.path);
 
-    // Create product
     const product = new Product({
       title,
       description,
@@ -64,11 +56,13 @@ exports.createProduct = async (req, res) => {
       message: "Product added successfully",
       product: saved
     });
+
   } catch (err) {
     console.error(err);
     res.status(400).json({ message: "Error adding product", error: err.message });
   }
 };
+
 
 // Get products with filters and pagination
 exports.getAllProducts = async (req, res) => {
