@@ -1,72 +1,81 @@
-const { Message } = require("../models/MarketDb");
+const Message = require("../models/Message");
+const User = require("../models/User");
 
-// send
+// SEND MESSAGE
 exports.sendMessage = async (req, res) => {
   try {
-    const { sellerId, productId, message } = req.body;
+    const { receiverId, content } = req.body;
 
-    if (!message || !sellerId)
-      return res.status(400).json({ error: "Missing fields" });
+    if (!receiverId || !content) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
 
-    const newMsg = await Message.create({
+    const message = await Message.create({
       sender: req.user.id,
-      receiver: sellerId,
-      product: productId,
-      message,
+      receiver: receiverId,
+      content,
     });
 
-    res.json({ success: true, msg: newMsg });
-  }
-   catch (error) {
-    console.error("sendMessage error", error);
-    res.status(500).json({ error: "Failed to send message" });
+    return res.status(201).json({ message: "Sent", data: message });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Send failed" });
   }
 };
 
-
-exports.getMyChats = async (req, res) => {
+// GET ONLY MESSAGES OF LOGGED-IN USER
+exports.getUserMessages = async (req, res) => {
   try {
-    const userId = req.user.id;  // from auth middleware
+    const userId = req.user.id;
 
-    const chats = await Message.find({
+    const messages = await Message.find({
       $or: [
         { sender: userId },
         { receiver: userId }
       ]
     })
-      .populate("sender", "name email phone")
-      .populate("receiver", "name email phone")
-      .sort({ createdAt: -1 });
-
-    res.json({ chats });
-  } catch (error) {
-    console.error("getMyChats error", error);
-    res.status(500).json({ error: "Failed to fetch chats" });
-  }
-};
-
-// mark seen
-exports.markSeen = async (req, res) => {
-  try {
-    const { messageId } = req.params;
-    const m = await Message.findByIdAndUpdate(messageId, { seen: true }, { new: true });
-    res.json({ message: "Marked seen", data: m });
-  } 
-  catch (err) {
-    res.status(400).json({ message: "Error", error: err.message });
-  }
-};
-
-// Get all the messages
-exports.getAllMessages = async (req, res) => {
-  try {
-    const msgs = await Message.find()
       .populate("sender", "name email")
       .populate("receiver", "name email")
       .sort({ createdAt: -1 });
 
-    res.json({ message: "Messages fetched", msgs });
+    res.json({ messages });
   } catch (err) {
-    res.status(500).json({ message: "Error fetching messages", error: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Failed loading messages" });
+  }
+};
+
+// GET CHAT LIST (Latest message per conversation)
+exports.getMyChats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const chats = await Message.find({
+      $or: [
+        { sender: userId },
+        { receiver: userId },
+      ],
+    })
+      .populate("sender", "name email")
+      .populate("receiver", "name email")
+      .sort({ createdAt: -1 });
+
+    res.json({ chats });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Chat load failed" });
+  }
+};
+
+// MARK MESSAGE AS SEEN
+exports.markSeen = async (req, res) => {
+  try {
+    const { messageId } = req.body;
+
+    await Message.findByIdAndUpdate(messageId, { seen: true });
+
+    res.json({ message: "Seen" });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to update seen" });
   }
 };
