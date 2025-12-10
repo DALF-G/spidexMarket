@@ -160,3 +160,35 @@ exports.markSeen = async (req, res) => {
     res.status(500).json({ message: "Failed to update seen", error: err.message });
   }
 };
+
+exports.getConversation = async (req, res) => {
+  try {
+    const userId =
+      (req.user && (req.user.userId || req.user._id || req.user.id)) ||
+      null;
+
+    const partnerId = req.params.partnerId;
+
+    if (!userId || !partnerId)
+      return res.status(400).json({ message: "Missing user or partner ID" });
+
+    // Get all messages between logged-in user & partner
+    const msgs = await Message.find({
+      $or: [
+        { sender: userId, receiver: partnerId },
+        { sender: partnerId, receiver: userId },
+      ],
+    })
+      .populate("sender", "name email profileImage")
+      .populate("receiver", "name email profileImage")
+      .populate("product", "title photos price")
+      .sort({ createdAt: 1 }) // sort oldest → newest
+      .lean();
+
+    res.json({ messages: msgs });
+  } catch (err) {
+    console.error("getConversation error:", err);
+    res.status(500).json({ message: "Failed to load conversation" });
+  }
+};
+

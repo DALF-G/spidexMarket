@@ -13,4 +13,7 @@ router.put("/seen", auth, msg.markSeen);
 // all messages (admin only maybe)
 router.get("/", auth, msg.getMyChats);
 
+router.get("/conversation/:partnerId", auth, msg.getConversation);
+
+
 module.exports = router;
