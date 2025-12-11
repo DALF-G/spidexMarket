@@ -213,3 +213,60 @@ exports.adminGetConversation = async (req, res) => {
   }
 };
 
+// DELETE /api/message/delete/:id
+exports.deleteMessage = async (req, res) => {
+  try {
+    const messageId = req.params.id;
+
+    const deleted = await Message.findByIdAndDelete(messageId);
+
+    if (!deleted) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    return res.json({ message: "Message deleted successfully" });
+  } catch (err) {
+    console.error("Delete message error:", err);
+    res.status(500).json({ message: "Failed to delete message" });
+  }
+};
+
+// DELETE /api/message/conversation/:userId
+exports.deleteConversation = async (req, res) => {
+  try {
+    const adminId = req.user._id;       // authenticated admin
+    const otherUserId = req.params.userId;
+
+    await Message.deleteMany({
+      $or: [
+        { sender: adminId, receiver: otherUserId },
+        { sender: otherUserId, receiver: adminId }
+      ]
+    });
+
+    return res.json({ message: "Conversation deleted successfully" });
+  } catch (err) {
+    console.error("Delete conversation error:", err);
+    res.status(500).json({ message: "Failed to delete conversation" });
+  }
+};
+
+// DELETE /api/message/admin/conversation/:userA/:userB
+exports.adminDeleteUserConversation = async (req, res) => {
+  try {
+    const { userA, userB } = req.params;
+
+    await Message.deleteMany({
+      $or: [
+        { sender: userA, receiver: userB },
+        { sender: userB, receiver: userA }
+      ]
+    });
+
+    return res.json({ message: "User-to-user conversation deleted" });
+  } catch (err) {
+    console.error("Admin delete user conversation error:", err);
+    res.status(500).json({ message: "Failed to delete conversation" });
+  }
+};
+
