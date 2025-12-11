@@ -192,3 +192,24 @@ exports.getConversation = async (req, res) => {
   }
 };
 
+exports.adminGetConversation = async (req, res) => {
+  try {
+    const { userA, userB } = req.params;
+
+    const messages = await Message.find({
+      $or: [
+        { sender: userA, receiver: userB },
+        { sender: userB, receiver: userA }
+      ]
+    })
+      .populate("sender", "name email")
+      .populate("receiver", "name email")
+      .sort({ createdAt: 1 });
+
+    res.json({ messages });
+  } catch (err) {
+    console.error("Admin conversation fetch error:", err);
+    res.status(500).json({ message: "Failed to load conversation" });
+  }
+};
+

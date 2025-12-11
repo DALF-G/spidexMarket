@@ -15,5 +15,7 @@ router.get("/", auth, msg.getMyChats);
 
 router.get("/conversation/:partnerId", auth, msg.getConversation);
 
+router.get("/conversation/:userA/:userB", auth, msg.adminGetConversation);
+
 
 module.exports = router;
