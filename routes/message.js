@@ -27,7 +27,6 @@ router.delete("/conversation/:userId", auth, msg.deleteConversation);
 router.delete(
   "/conversation/:userA/:userB",
   auth,
-  authorizeRoles("admin"),
   msg.adminDeleteUserConversation
 );
 
