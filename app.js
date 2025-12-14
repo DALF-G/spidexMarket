@@ -37,6 +37,9 @@ app.use("/api/adminstats", require("./routes/adminDashboard"));
 app.use("/api/sellerstats", require("./routes/sellerDashboard"));
 app.use("/api/buyerstats", require("./routes/buyerDashboard"));
 
+app.use("/api/visitors", require("./routes/visitors"));
+
+
 // Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);

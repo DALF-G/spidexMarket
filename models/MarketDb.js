@@ -80,11 +80,62 @@ const premiumSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+const BuyerVisitSchema = new Schema(
+  {
+    seller: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    buyer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    lastVisit: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { timestamps: true }
+);
+
+// Ensure unique buyer-seller pair
+BuyerVisitSchema.index({ seller: 1, buyer: 1 }, { unique: true });
+
+const ProductViewSchema = new mongoose.Schema({
+  product: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Product",
+    required: true,
+  },
+
+  seller: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+
+  buyer: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: false,  // if buyer is logged out, still record as anonymous
+  },
+
+  viewedAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+
 const User = mongoose.model("User", userSchema);
 const Product = mongoose.model("Product", productSchema);
 const Category = mongoose.model("Category", categorySchema);
 const Message = mongoose.model("Message", messageSchema);
 const Review = mongoose.model("Review", reviewSchema);
 const Premium = mongoose.model("Premium", premiumSchema);
+const BuyerVisit = mongoose.model("BuyerVisit", BuyerVisitSchema);
+const ProductView = mongoose.model("ProductView", ProductViewSchema);
 
-module.exports = { User, Product, Category, Message, Review, Premium };
+module.exports = { User, Product, Category, Message, Review, Premium, BuyerVisit, ProductView };

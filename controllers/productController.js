@@ -1,4 +1,3 @@
-// controllers/productController.js
 const { Product, User } = require("../models/MarketDb");
 
 exports.createProduct = async (req, res) => {
@@ -90,16 +89,33 @@ exports.getAllProducts = async (req, res) => {
 
 exports.getProductById = async (req, res) => {
   try {
-    const prod = await Product.findById(req.params.id).populate("seller", "name phone location");
+    const prod = await Product.findById(req.params.id)
+      .populate("seller", "name phone location");
+
     if (!prod) return res.status(404).json({ message: "Product not found" });
+
+    // increase view count
     prod.views = (prod.views || 0) + 1;
-    prod.save().catch(()=>{});
+    prod.save().catch(() => {});
+
+    // ⭐ NEW: Log visitor
+    try {
+      await ProductView.create({
+        product: prod._id,
+        seller: prod.seller._id,
+        buyer: req.user ? req.user.userId : null // allow anonymous too
+      });
+    } catch (err) {
+      console.log("Visitor logging error:", err.message);
+    }
+
     res.json({ product: prod });
-  }
-   catch (err) {
+
+  } catch (err) {
     res.status(400).json({ message: "Error", error: err.message });
   }
 };
+
 
 exports.updateProduct = async (req, res) => {
   try {
