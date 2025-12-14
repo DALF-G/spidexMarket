@@ -89,21 +89,31 @@ exports.getAllProducts = async (req, res) => {
 
 exports.getProductById = async (req, res) => {
   try {
+    // Populate seller properly
     const prod = await Product.findById(req.params.id)
       .populate("seller", "name phone location");
 
-    if (!prod) return res.status(404).json({ message: "Product not found" });
+    if (!prod)
+      return res.status(404).json({ message: "Product not found" });
+
+    // ❌ If seller missing → frontend gets undefined
+    if (!prod.seller) {
+      return res.status(500).json({
+        message: "This product has no seller assigned in the database.",
+        error: "Missing seller"
+      });
+    }
 
     // increase view count
     prod.views = (prod.views || 0) + 1;
     prod.save().catch(() => {});
 
-    // ⭐ NEW: Log visitor
+    // Log visitor safely
     try {
       await ProductView.create({
         product: prod._id,
-        seller: prod.seller._id,
-        buyer: req.user ? req.user.userId : null // allow anonymous too
+        seller: prod.seller ? prod.seller._id : null,
+        buyer: req.user ? req.user.userId : null
       });
     } catch (err) {
       console.log("Visitor logging error:", err.message);
@@ -115,6 +125,7 @@ exports.getProductById = async (req, res) => {
     res.status(400).json({ message: "Error", error: err.message });
   }
 };
+
 
 // Record product view
 exports.trackProductView = async (req, res) => {
