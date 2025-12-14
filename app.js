@@ -39,6 +39,9 @@ app.use("/api/buyerstats", require("./routes/buyerDashboard"));
 
 app.use("/api/visitors", require("./routes/visitors"));
 
+app.use("/api/seller", require("./routes/seller"));
+
+
 
 // Global error handler
 app.use((err, req, res, next) => {

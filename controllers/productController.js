@@ -116,6 +116,39 @@ exports.getProductById = async (req, res) => {
   }
 };
 
+// Record product view
+exports.trackProductView = async (req, res) => {
+  try {
+    const { productId } = req.params;
+
+    const product = await Product.findById(productId).populate("seller");
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const buyerId = req.user ? req.user.userId : null;
+
+    // Save product view
+    await ProductView.create({
+      product: productId,
+      seller: product.seller._id,
+      buyer: buyerId,
+    });
+
+    // Also update buyer-seller relationship
+    if (buyerId) {
+      await BuyerVisit.findOneAndUpdate(
+        { seller: product.seller._id, buyer: buyerId },
+        { lastVisit: Date.now() },
+        { upsert: true, new: true }
+      );
+    }
+
+    res.json({ message: "View tracked" });
+  } catch (error) {
+    res.status(500).json({ message: "Error tracking view", error: error.message });
+  }
+};
 
 exports.updateProduct = async (req, res) => {
   try {
