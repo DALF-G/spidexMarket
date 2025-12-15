@@ -103,30 +103,30 @@ const BuyerVisitSchema = new Schema(
 // Ensure unique buyer-seller pair
 BuyerVisitSchema.index({ seller: 1, buyer: 1 }, { unique: true });
 
-const ProductViewSchema = new mongoose.Schema({
-  product: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Product",
-    required: true,
+const ProductViewSchema = new mongoose.Schema(
+  {
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+      required: true
+    },
+    seller: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true
+    },
+    buyer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true
+    },
+    viewedAt: {
+      type: Date,
+      default: Date.now
+    }
   },
-
-  seller: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
-
-  buyer: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: false,  // if buyer is logged out, still record as anonymous
-  },
-
-  viewedAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  { timestamps: true }
+);
 
 
 const User = mongoose.model("User", userSchema);

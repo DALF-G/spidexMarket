@@ -37,10 +37,13 @@ exports.getSellerProfile = async (req, res) => {
 exports.getSellerVisitors = async (req, res) => {
     try {
       const sellerId = req.user.userId;
+
+     
   
       const visits = await BuyerVisit.find({ seller: sellerId })
         .populate("buyer", "name email phone")
         .sort({ lastVisit: -1 });
+
   
       const views = await ProductView.find({ seller: sellerId })
         .populate("buyer", "name email phone")

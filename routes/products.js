@@ -24,7 +24,7 @@ router.get(
 router.get("/", productController.getAllProducts);
 
 // Get product by ID
-router.get("/:id", productController.getProductById);
+router.get("/:id",  auth, productController.getProductById);
 
 // Update product (Only sellers or admins)
 // router.put("/:id", auth, authorizeRoles("seller", "admin"), productController.uploadProductPhoto, productController.updateProduct);
